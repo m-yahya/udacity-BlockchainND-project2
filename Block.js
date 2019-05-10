@@ -3,9 +3,12 @@
 |  ===============================================*/
 
 class Block {
-	constructor(data){
-		// Add your Block properties
-		// Example: this.hash = "";
+	constructor(data) {
+		this.hash = '';
+		this.time = 0;
+		this.height = 0;
+		this.data = data;
+		this.previousBlockHash = '';
 	}
 }
 
