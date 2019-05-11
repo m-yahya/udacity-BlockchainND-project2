@@ -10,7 +10,6 @@ class Blockchain {
 
     constructor() {
         this.bd = new LevelSandbox.LevelSandbox();
-        this.chain = [];
         this.generateGenesisBlock();
     }
 
@@ -25,61 +24,78 @@ class Blockchain {
     }
 
     // Get block height, it is a helper method that return the height of the blockchain
-    getBlockHeight() {
-        return this.chain.length - 1;
+    async getBlockHeight() {
+        await bd.getBlocksCount() - 1;
     }
 
     // Add new block
-    addBlock(block) {
+    async addBlock(block) {
         // block hash
         block.hash = SHA256(JSON.stringify(block).toString());
         // UTC timestamp
         block.time = new Date().getTime().toString().slice(0, -3);
         // block height
-        block.height = this.chain.length;
+        const height = parseInt(await this.getBlockHeight());
+        block.height = height + 1;
         // previous block hash
         if (this.chain.length > 0) {
             block.previousBlockHash = this.chain[this.chain.length - 1].hash;
         }
         // add block
-        this.chain.push(block);
+        bd.addLevelDBData(block.height, JSON.stringify(block).toString());
     }
 
     // Get Block By Height
     getBlock(height) {
-        return JSON.parse(JSON.stringify(this.chain[height]));
+        return new Promise((resolve, reject) => {
+            bd.get(key, (err, value) => {
+                if (err) {
+                    console.log('Not found', err)
+                    reject();
+                } else {
+                    resolve(value);
+                }
+            })
+        })
     }
 
     // Validate if Block is being tampered by Block Height
     validateBlock(height) {
-        // get block
-        let block = this.getBlock(height);
-        // get block hash
-        let blockHash = block.hash;
-        // remove block hash for test
-        block.hash = '';
-        // create valid hash
-        let validBlockHash = SHA256(JSON.stringify(block)).toString();
-        // comparison
-        if (blockHash === validBlockHash) {
-            return true;
-        } else {
-            console.log('Block No. ' + height + ' invalid hash:\n' + blockHash + '-' + validBlockHash);
-            return false;
-        }
+        return new Promise((resolve, reject) => {
+            // get block
+            let block = this.getBlock(height);
+            // get block hash
+            let blockHash = block.hash;
+            // remove block hash for test
+            block.hash = '';
+            // create valid hash
+            let validBlockHash = SHA256(JSON.stringify(block)).toString();
+            // comparison
+            if (blockHash === validBlockHash) {
+                resolve(true);
+            } else {
+                console.log('Block No. ' + height + ' invalid hash:\n' + blockHash + '-' + validBlockHash);
+                resolve(false);
+            }
+        })
+
     }
 
     // Validate Blockchain
-    validateChain() {
+    async validateChain() {
         let errorLog = [];
-        for (var i = 0; i < this.chain.length - 1; i++) {
+        const blockHeight = await this.getBlockHeight();
+        for (var i = 0; i < blockHeight; i++) {
             // check block validation
             if (!this.validateBlock(i)) {
                 errorLog.push(i);
             }
             // compare block hashes
-            let blockHash = this.chain[i].hash;
-            let previousHash = this.chain[i + 1].previousBlockHash;
+
+            let block = this.getBlock(i);
+            let blockHash = block.hash;
+            let nextBlock = this.getBlock(i + 1);
+            let previousHash = nextBlock.previousBlockHash;
             if (blockHash !== previousHash) {
                 errorLog.push(i);
             }
