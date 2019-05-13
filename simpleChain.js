@@ -35,10 +35,11 @@ setTimeout(function () {
 
 
 // Be careful this only will work if `getBlockHeight` method in Blockchain.js file return a Promise
+/*
 myBlockChain.getBlockHeight().then((height) => {
 	console.log(height);
 }).catch((err) => { console.log(err); });
-
+*/
 
 /***********************************************
  ******** Function to Get a Block  *************
@@ -46,10 +47,11 @@ myBlockChain.getBlockHeight().then((height) => {
 
 
 // Be careful this only will work if `getBlock` method in Blockchain.js file return a Promise
+/*
 myBlockChain.getBlock(0).then((block) => {
 	console.log(JSON.stringify(block));
 }).catch((err) => { console.log(err); });
-
+*/
 
 /***********************************************
  ***************** Validate Block  *************
@@ -57,13 +59,14 @@ myBlockChain.getBlock(0).then((block) => {
 
 
 // Be careful this only will work if `validateBlock` method in Blockchain.js file return a Promise
+/*
 myBlockChain.validateBlock(0).then((valid) => {
 	console.log(valid);
 })
 	.catch((error) => {
 		console.log(error);
 	})
-
+*/
 
 /** Tampering a Block this is only for the purpose of testing the validation methods */
 /*
