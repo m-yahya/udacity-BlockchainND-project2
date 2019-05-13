@@ -18,14 +18,16 @@ class Blockchain {
     // you will need to set this up statically or instead you can verify if the height !== 0 then you
     // will not create the genesis block
     generateGenesisBlock() {
-        if (this.chain.length === 0) {
-            return this.addBlock(new Block.Block('First block in the chain - Genesis block'));
-        }
+        this.getBlockHeight().then(height => {
+            if (height === -1) {
+                return this.addBlock(new Block('First block in the chain - Genesis block'));
+            }
+        })
     }
 
     // Get block height, it is a helper method that return the height of the blockchain
     async getBlockHeight() {
-        await bd.getBlocksCount() - 1;
+        return await this.bd.getBlocksCount() - 1;
     }
 
     // Add new block
@@ -38,25 +40,17 @@ class Blockchain {
         const height = parseInt(await this.getBlockHeight());
         block.height = height + 1;
         // previous block hash
-        if (this.chain.length > 0) {
-            block.previousBlockHash = this.chain[this.chain.length - 1].hash;
+        if (block.height > 0) {
+            const previousBlock = await this.getBlockHeight(height);
+            block.previousBlockHash = previousBlock.hash;
         }
         // add block
-        bd.addLevelDBData(block.height, JSON.stringify(block).toString());
+        await this.bd.addLevelDBData(block.height, JSON.stringify(block));
     }
 
     // Get Block By Height
-    getBlock(height) {
-        return new Promise((resolve, reject) => {
-            bd.get(key, (err, value) => {
-                if (err) {
-                    console.log('Not found', err)
-                    reject();
-                } else {
-                    resolve(value);
-                }
-            })
-        })
+    async getBlock(height) {
+        return JSON.parse(await this.bd.getLevelDBData(height));
     }
 
     // Validate if Block is being tampered by Block Height
@@ -69,7 +63,7 @@ class Blockchain {
             // remove block hash for test
             block.hash = '';
             // create valid hash
-            let validBlockHash = SHA256(JSON.stringify(block)).toString();
+            let validBlockHash = SHA256(JSON.stringify(block));
             // comparison
             if (blockHash === validBlockHash) {
                 resolve(true);
@@ -90,8 +84,8 @@ class Blockchain {
             if (!this.validateBlock(i)) {
                 errorLog.push(i);
             }
-            // compare block hashes
 
+            // compare block hashes
             let block = this.getBlock(i);
             let blockHash = block.hash;
             let nextBlock = this.getBlock(i + 1);
@@ -111,6 +105,7 @@ class Blockchain {
 
     // Utility Method to Tamper a Block for Test Validation
     // This method is for testing purpose
+
     _modifyBlock(height, block) {
         let self = this;
         return new Promise((resolve, reject) => {
@@ -119,6 +114,7 @@ class Blockchain {
             }).catch((err) => { console.log(err); reject(err) });
         });
     }
+
 
 }
 
