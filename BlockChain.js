@@ -88,7 +88,7 @@ class Blockchain {
             // compare block hashes
             let block = this.getBlock(i);
             let blockHash = block.hash;
-            let nextBlock = this.getBlock(i + 1);
+            let nextBlock = await this.getBlock(i + 1);
             let previousHash = nextBlock.previousBlockHash;
             if (blockHash !== previousHash) {
                 errorLog.push(i);
