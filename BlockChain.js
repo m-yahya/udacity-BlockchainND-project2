@@ -46,6 +46,9 @@ class Blockchain {
         }
         // add block
         await this.bd.addLevelDBData(block.height, JSON.stringify(block));
+
+        // return the new block
+        return JSON.stringify(block);
     }
 
     // Get Block By Height
